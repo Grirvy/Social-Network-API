@@ -1,5 +1,5 @@
 const express = require('express');
-const db = require('./config/CONN');
+const connectToMongoose = require('./config/CONN');
 const routes = require('./routes');
 
 const PORT = process.env.PORT || 3001;
@@ -7,10 +7,17 @@ const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(routes);
 
-db.once('open', () => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}!`);
-  });
+Promise.all([connectToMongoose()])
+  .then(() => {
+    app.use(routes);
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}!`);
+    });
+  })
+  .catch(error => {
+    console.error("Error connecting to server:", error);
 });
+
+// server.js
